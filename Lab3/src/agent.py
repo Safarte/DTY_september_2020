@@ -7,6 +7,7 @@ import numpy as np
 from collections import deque
 from keras.models import Sequential
 from keras.optimizers import Adam
+from keras.layers import Dense, Input
 
 
 class DQLAgent(object):
@@ -29,7 +30,10 @@ class DQLAgent(object):
         """Neural Net for Deep-Q learning Model."""
         model = Sequential()
 
-        # TODO(students): !!!!!!!!! IMPLEMENT THIS !!!!!!!!!!!!!!  """
+        model.add(Input((self.state_size,)))
+        model.add(Dense(50, activation='relu'))
+        model.add(Dense(50, activation='relu'))
+        model.add(Dense(self.action_size, activation='linear'))
 
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
@@ -38,7 +42,7 @@ class DQLAgent(object):
         """This function change the value of self.epsilon to deal with the
         exploration-exploitation tradeoff as time goes"""
 
-        # TODO(students): !!!!!!!!! IMPLEMENT THIS !!!!!!!!!!!!!!  """
+        self.epsilon = (self.epsilon - 0.1) * pow(0.999, self.count) + 0.1
         # It should change (or not) the value of self.epsilon
 
     def save(self, output: str):
@@ -58,9 +62,9 @@ class DQLAgent(object):
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state, greedy=True):
-        # !!!!  TODO(students): implements an epsilon greedy policy here   !!!!
-        # Make sure that if greedy is True, the policy should be greedy
-        # As it is the policy is just plain greedy....
+        if np.random.rand() <= self.epsilon and not greedy:
+            return np.random.randint(self.action_size)
+
         return np.argmax(self.model.predict(state))
 
     def replay(self, batch_size):
