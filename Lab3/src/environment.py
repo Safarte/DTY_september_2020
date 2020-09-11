@@ -25,24 +25,31 @@ class Environment(object):
 
     def reward(self) -> float:
         """Computes the reward at the present moment"""
-        k_center = -10
-        k_stop = -10
-        k_speed = 5
-        k_progress = 100
+        k_center = 0.1
+        k_speed = 2
+        k_progress = 5
+        k_colision = -0.1
 
         distances = self.car.distances()
-        center = sum([abs(distances[i] - distances[-i-1]) for i in range(self.NUM_SENSORS)]) / 2
+        # center = sum([abs(distances[i] - distances[-i-1]) for i in range(self.NUM_SENSORS)]) / 2
+        center = distances[0] + distances[-1]
 
-        reward = k_center * center + k_stop * (1 if self.car.speed == 0 else 0) + k_speed * self.car.speed + k_progress * self.circuit.progression
+        progress = self.circuit.laps + self.circuit.progression
+
+        if self.car.speed == 0:
+            return -10
         
-        return reward
+        colision = 1 / (distances[self.NUM_SENSORS // 2] + 0.1)
+
+        return k_center * center + k_speed * self.car.speed + k_progress * progress + k_colision * colision
 
     def isEnd(self) -> bool:
         """Is the episode over ?"""
 
         # Should return true if we have reached the end of an episode, False
         # otherwise
-        return not self.car.in_circuit()
+
+        return (self.count > 10 and self.car.speed == 0) or not self.car.in_circuit()
 
     def reset(self):
         self.count = 0
